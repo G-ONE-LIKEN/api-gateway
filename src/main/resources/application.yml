@@ -1,0 +1,70 @@
+server:
+  port: ${PORT:8090}
+
+jwt:
+  secret: ${JWT_SECRET:dev-secret-key-must-be-at-least-256-bits-long-for-hs256}
+
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  services:
+    usuarios-url: ${USUARIOS_URL:http://localhost:8080}
+    proyectos-url: ${PROYECTOS_URL:http://localhost:8081}
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: ${FRONTEND_URL:http://localhost:5173}
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowed-headers: "*"
+            allow-credentials: true
+      routes:
+        # --- backend-adm-usuarios (8080) ---
+
+        - id: auth
+          uri: ${app.services.usuarios-url}
+          predicates:
+            - Path=/api/auth/**
+
+        - id: users
+          uri: ${app.services.usuarios-url}
+          predicates:
+            - Path=/api/users/**
+
+        - id: roles
+          uri: ${app.services.usuarios-url}
+          predicates:
+            - Path=/api/roles/**
+
+        - id: permissions
+          uri: ${app.services.usuarios-url}
+          predicates:
+            - Path=/api/permissions/**
+
+        # Inversiones viven en adm-usuarios; debe ir ANTES del catch-all de proyectos
+        - id: investments
+          uri: ${app.services.usuarios-url}
+          predicates:
+            - Path=/api/projects/*/investments
+
+        # --- backend-proyectos (8081) ---
+
+        - id: projects
+          uri: ${app.services.proyectos-url}
+          predicates:
+            - Path=/api/projects/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
