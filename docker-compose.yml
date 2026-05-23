@@ -1,0 +1,14 @@
+services:
+  api-gateway:
+    build: .
+    ports:
+      - "8090:8090"
+    environment:
+      PORT: 8090
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-must-be-at-least-256-bits-long-for-hs256}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      USUARIOS_URL: ${USUARIOS_URL:-http://host.docker.internal:8080}
+      PROYECTOS_URL: ${PROYECTOS_URL:-http://host.docker.internal:8081}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
